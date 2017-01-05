@@ -1,10 +1,11 @@
 #include "PID_lib.h"
 
 PID::PID(int pinOtput, int pinInput, int kp, int kd, int ki, int period){
+  _period = period + 100;
   calculateVariables(kp, kd, ki);
   _pinInput = pinInput;
   _pinOutput = pinOtput;
-  _period = period;
+  
 
 }
 
