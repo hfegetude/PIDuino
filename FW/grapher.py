@@ -1,31 +1,50 @@
-import numpy as np
+import numpy
 import matplotlib.pyplot as plt
+import matplotlib.animation as animation
 import serial
 
+def data_gen():
+    while True:
+        c = ser.readline();
+        if c.find('s') != -1:
+            temp = ( 5*float(ser.readline())/1024.0 -0.5)*100
+            ti = float(ser.readline())/1000
+            yield ti, temp
+def init():
+    ax.set_ylim(15, 45)
+    ax.set_xlim(0, 10)
+    del xdata[:]
+    del ydata[:]
 
-def fifo_move(queue, data):
-    queue.pop(0)
-    queue.append(data)
+    line.set_data(xdata, ydata)
+    return line,
 
 
-number_of_elements_per_frame = 20
-list_of_times = number_of_elements_per_frame * [0]
-list_of_temps = number_of_elements_per_frame * [0]
-list_of_power = number_of_elements_per_frame * [0]
-list_of_aims = number_of_elements_per_frame * [0]
-number_of_data = 0;
+
+def run(data):
+    # update the data
+    t, y = data
+    xdata.append(t)
+    ydata.append(y)
+    xmin, xmax = ax.get_xlim()
+
+    if t >= xmax:
+        ax.set_xlim(xdata[0], t)
+        xdata.pop(0)
+        ydata.pop(0)
+        ax.figure.canvas.draw()
+    line.set_data(xdata, ydata)
 
 
-while True:
-    ser = serial.Serial('/dev/ttyUSB0', 9600)
+    return line,
 
-    fifo_move(list_of_temps ,float(ser.readline()))
-    fifo_move(list_of_power, float(ser.readline())/255)
-    fifo_move(list_of_aims, float(ser.readline()))
-    fifo_move(list_of_times,float(ser.readline()))
-    number_of_data = number_of_data +1;
-    if number_of_data > 0:
-        plt.clear()
-        plt.axis([min(list_of_times), max(list_of_times), 15, 50])
-        plt.plot(list_of_times, list_of_temps , 'r', list_of_times, list_of_power , 'g', list_of_times, list_of_power , 'b',)
-        plt.show();
+
+ser = serial.Serial('/dev/ttyUSB0', 9600)
+fig, ax = plt.subplots()
+line, = ax.plot([], [], lw=2)
+ax.grid()
+xdata, ydata = [], []
+
+ani = animation.FuncAnimation(fig, run, data_gen, blit=False,
+                              repeat=False, init_func=init)
+plt.show()

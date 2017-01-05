@@ -15,9 +15,8 @@ void loop() {
   output = pid_controller.readData();
   int power = pid_controller.calculateOutput();
   pid_controller.setOutput();
+  Serial.println("st");
   Serial.println(output);
-  Serial.println(power);
-  Serial.println(35);
   Serial.println(millis());
   pid_controller.wait();
 }
