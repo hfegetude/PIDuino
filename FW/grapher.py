@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from matplotlib.widgets import Slider
 from matplotlib.patches import Rectangle
+import serial.tools.list_ports as serialTool
 import serial
 
 def data_gen():
@@ -15,7 +16,7 @@ def data_gen():
             aim = (5*float(ser.readline())/1024.0 - 0.5)*100
             ti = float(ser.readline())/1000
             currentMean = (temp + currentMean)/2
-            
+
             yield [temp, power, aim,  ti, currentMean]
 def init():
     ax.set_ylim(0, 50)
@@ -53,7 +54,12 @@ def run(data):
     return [line, line2, line3]
 
 
-ser = serial.Serial('/dev/ttyUSB0', 9600)
+print 'Select your serial port:'
+ports = serialTool.comports()
+for idx, port in enumerate(ports):
+    print '[{}] '.format(idx) + port.device
+
+ser = serial.Serial(ports[int(raw_input('=> '))].device, 9600)
 
 fig, ax = plt.subplots()
 TextBox = ax.text(0.5, 1.0, str(0), transform=ax.transAxes, ha="right", va="bottom", color="black", family="sans-serif", fontweight="light", fontsize=16)
